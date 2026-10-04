@@ -9,12 +9,12 @@ Use this skill when the user asks to fetch, backfill, or update historical NAV d
 
 ## Required request details
 
-Obtain a fund description or an exact AMFI identity, plus an inclusive start and end date. Ask for missing dates. Interpret relative periods only when the intended dates are clear; state the exact dates before import.
+Obtain a fund description or an exact AMFI identity, plus an inclusive start and end date. Ask for missing dates. Interpret relative periods only when the intended dates are clear; state the exact dates before import. Unless the user explicitly requests another variant, treat every mutual-fund request as **Direct Plan — Growth** (AMFI may label the option `Growth` or `Growth Option`).
 
 ## Resolve the scheme and wait for confirmation before loading
 
 1. Resolve the request against AMFI's current scheme catalogue, using its official HTTPS text report (`https://portal.amfiindia.com/spages/NAVAll.txt`) and the project's AMFI parser when available.
-2. Match the exact scheme identity, including Scheme Code, NAV Name, Plan, Option, and the available ISIN fields. Distinguish Direct from Regular and Growth from IDCW or reinvestment variants.
+2. Apply the Direct Plan — Growth default when the user has not named a different variant. Match the exact scheme identity, including Scheme Code, NAV Name, Plan, Option, and available ISIN fields. Do not substitute Regular, IDCW, or reinvestment variants when the requested/default Direct Growth variant is unavailable. If more than one candidate still matches, show the candidates and ask the user to select one.
 3. If the request supplies Scheme Code and ISIN, verify both against AMFI. Do not treat a scheme name alone as proof if multiple variants match.
 4. Present the proposed fund identity before every import and wait for the user's explicit confirmation, even when the catalogue returns exactly one match or the user supplied a Scheme Code. Show the **AMFI Scheme Code** (clearly labeled as distinct from the database's internal `instrument_id`), NAV Name, Plan, Option, available ISINs, and the inclusive requested date range. Ask the user to confirm that exact scheme and range. Do not request NAV history, register an instrument, or write to SQLite until the user confirms. A confirmation from an earlier import does not confirm a later request.
 5. If multiple candidates remain, show their distinguishing identity fields and ask the user to select one. Then restate the selected candidate and requested range and wait for explicit confirmation before fetching history. If identity fields conflict or the requested variant cannot be distinguished, stop rather than guessing.
