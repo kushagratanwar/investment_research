@@ -11,11 +11,12 @@
 - **Numerical source of truth:** SQLite holds accepted raw values. Python performs deterministic single-series calculations; derived metrics are not persisted.
 - **Basic calculations:** simple value-to-value return, period return from the first and last stored observations within an inclusive requested range, and CAGR using ACT/365 elapsed time.
 - **Portfolio value methodology:** `PortfolioSpec` remains an in-memory `instrument_id -> weight` mapping. For a single portfolio, `portfolio_value_series` models an initial lump-sum investment normalized to 1.0 on an explicit start date. Weights set the initial allocation; component units remain fixed, with no subsequent contributions or rebalancing, so weights drift naturally. Every constituent must have a positive start-date observation. Later output dates are limited to dates with observations for every constituent; no forward filling or interpolation occurs.
+- **Portfolio comparison:** `compare_portfolios` accepts two `PortfolioSpec` values and an explicit inclusive start/end interval. It restricts the normalized portfolio value series to that interval, aligns on dates common to both, and returns each total return and their difference in percentage points. It does not fill or interpolate missing dates.
 - **Synthetic development data:** no real instrument or personal portfolio data is part of the current scope.
 
 ## Explicitly unresolved or out of scope
 
-The selected single-portfolio historical value methodology is the fixed-units lump-sum method described above. Portfolio comparison is not implemented. Portfolio persistence, lifecycle, rebalancing, subsequent contributions or withdrawals, advanced risk metrics, rolling analysis, attribution, benchmark analysis, extensive instrument metadata, provider-specific ingestion, and real personal portfolio data are not current capabilities or commitments. They remain outside scope unless a concrete research need is explicitly identified.
+Portfolio persistence, lifecycle, rebalancing, subsequent contributions or withdrawals, advanced risk metrics, rolling analysis, attribution, benchmark analysis, extensive instrument metadata, provider-specific ingestion, and real personal portfolio data are not current capabilities or commitments. They remain outside scope unless a concrete research need is explicitly identified.
 
 ## Scope principle
 

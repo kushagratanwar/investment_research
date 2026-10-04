@@ -13,6 +13,8 @@ historical observation retrieval
         ├── deterministic single-series calculations
         └── PortfolioSpec + portfolio value series
             (one-time allocation, fixed component units)
+                ↓
+            two-portfolio comparison (explicit interval, common dates)
 
 PortfolioSpec (in-memory weights and validation)
 ```
@@ -35,6 +37,10 @@ Repository retrieval selects stored values by instrument and optional date bound
 
 `PortfolioSpec` is an in-memory mapping from instrument IDs to weights. It validates that the mapping is nonempty, weights are positive, and their sum is 1 within tolerance. `portfolio_value_series` uses SQLite observations to calculate one portfolio's historical value series: initial capital is normalized to 1.0, allocated by the weights at an explicit start date, and converted to fixed component units. No later contributions or rebalancing occur, so weights drift naturally. The start date must be observed for every constituent; subsequent output dates include only dates observed for every constituent. No values are forward-filled or interpolated. Derived values remain in Python and are not persisted.
 
+### Portfolio comparison
+
+`compare_portfolios` calculates each input portfolio with `portfolio_value_series`, restricts both results to the requested inclusive interval, and aligns them on common dates. It returns both aligned normalized series, actual comparison endpoints, each portfolio's total return, and the return difference in percentage points. It does not forward-fill or interpolate, and it does not persist portfolios or derived values.
+
 ## Current boundary
 
-The project can store and analyse individual historical value series and calculate a historical value series for one portfolio. It does not yet compare two portfolio series. No portfolio persistence or portfolio-management functionality is provided.
+The project can calculate and compare historical value series for two portfolios. No portfolio persistence or portfolio-management functionality is provided.
