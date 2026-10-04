@@ -10,10 +10,11 @@ ingestion validation, provenance, and conflict-safe loading
 SQLite: instruments, observations, ingestion_runs
         ↓
 historical observation retrieval
-        ↓
-deterministic single-series calculations
+        ├── deterministic single-series calculations
+        └── PortfolioSpec + portfolio value series
+            (one-time allocation, fixed component units)
 
-PortfolioSpec (in-memory weights and validation only)
+PortfolioSpec (in-memory weights and validation)
 ```
 
 ### Database
@@ -32,8 +33,8 @@ Repository retrieval selects stored values by instrument and optional date bound
 
 ### Portfolio representation
 
-`PortfolioSpec` is an in-memory mapping from instrument IDs to weights. It validates that the mapping is nonempty, weights are positive, and their sum is 1 within tolerance. It does not calculate portfolio values or returns.
+`PortfolioSpec` is an in-memory mapping from instrument IDs to weights. It validates that the mapping is nonempty, weights are positive, and their sum is 1 within tolerance. `portfolio_value_series` uses SQLite observations to calculate one portfolio's historical value series: initial capital is normalized to 1.0, allocated by the weights at an explicit start date, and converted to fixed component units. No later contributions or rebalancing occur, so weights drift naturally. The start date must be observed for every constituent; subsequent output dates include only dates observed for every constituent. No values are forward-filled or interpolated. Derived values remain in Python and are not persisted.
 
 ## Current boundary
 
-The project can store and analyse individual historical value series and validate a portfolio definition. It does not yet turn a multi-instrument specification into a historical portfolio series or compare two such series. That requires an explicitly chosen portfolio construction methodology and any required date-handling rules. Neither is implied by the current architecture.
+The project can store and analyse individual historical value series and calculate a historical value series for one portfolio. It does not yet compare two portfolio series. No portfolio persistence or portfolio-management functionality is provided.

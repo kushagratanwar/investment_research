@@ -10,14 +10,12 @@
 - **Provenance:** ingestion runs hold a source reference, content identity, status, and outcome counts/details. The default SHA-256 is over normalized rows. The database does not preserve the original artifact; retain it externally if reproducibility requires it.
 - **Numerical source of truth:** SQLite holds accepted raw values. Python performs deterministic single-series calculations; derived metrics are not persisted.
 - **Basic calculations:** simple value-to-value return, period return from the first and last stored observations within an inclusive requested range, and CAGR using ACT/365 elapsed time.
-- **Portfolio input only:** `PortfolioSpec` is an in-memory `instrument_id -> weight` mapping. It validates nonempty, positive weights summing to 1; it does not calculate portfolio performance.
+- **Portfolio value methodology:** `PortfolioSpec` remains an in-memory `instrument_id -> weight` mapping. For a single portfolio, `portfolio_value_series` models an initial lump-sum investment normalized to 1.0 on an explicit start date. Weights set the initial allocation; component units remain fixed, with no subsequent contributions or rebalancing, so weights drift naturally. Every constituent must have a positive start-date observation. Later output dates are limited to dates with observations for every constituent; no forward filling or interpolation occurs.
 - **Synthetic development data:** no real instrument or personal portfolio data is part of the current scope.
 
 ## Explicitly unresolved or out of scope
 
-No portfolio construction method has been selected. Buy-and-hold, daily or periodic rebalancing, and any other method are not implemented. Portfolio historical values and returns are not calculated. A portfolio missing-date policy is not defined.
-
-Advanced risk metrics, rolling analysis, attribution, benchmark analysis, saved portfolio/version management, portfolio persistence, extensive instrument metadata, provider-specific ingestion, and real personal portfolio data are not current capabilities or commitments. They remain outside scope unless a concrete research need is explicitly identified.
+The selected single-portfolio historical value methodology is the fixed-units lump-sum method described above. Portfolio comparison is not implemented. Portfolio persistence, lifecycle, rebalancing, subsequent contributions or withdrawals, advanced risk metrics, rolling analysis, attribution, benchmark analysis, extensive instrument metadata, provider-specific ingestion, and real personal portfolio data are not current capabilities or commitments. They remain outside scope unless a concrete research need is explicitly identified.
 
 ## Scope principle
 
