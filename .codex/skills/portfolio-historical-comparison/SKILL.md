@@ -15,7 +15,9 @@ Obtain or identify:
 - Historical daily values for each instrument over the requested comparison period, from the available database or user-provided normalized data.
 - The comparison start and end dates, or enough context to establish them.
 
-Use stable generic instrument identities. Do not add descriptive metadata or assume a provider. Do not use real investment data unless the user explicitly changes the project’s synthetic-data restriction.
+Use stable generic instrument identities. Do not add descriptive metadata. Use stored AMFI NAV data when the user requests analysis of an imported real mutual-fund scheme; do not fetch other real investment data or use real financial data in development fixtures or tests.
+
+Users may provide stable database keys such as `amfi:scheme:<Scheme Code>`. Resolve each key to its internal `instrument_id` before constructing `PortfolioSpec`, which uses integer IDs; do not require users to memorize those IDs. If a key is unknown or maps to no stored observations, report that instead of substituting another instrument.
 
 Validate that each portfolio is nonempty and its weights are finite, positive, and sum to 1. If weights, identities, dates, or required values are missing or invalid, explain what is missing and ask for it; do not guess, silently normalize weights, or substitute instruments.
 
@@ -48,7 +50,7 @@ Do not assume a fixed number of years or substitute 365 days for the actual elap
 
 Use historical observations as stored or supplied. Preserve their dates and values; do not fabricate, interpolate, forward-fill, or silently drop observations. Retrieve or organize series chronologically and check that values needed for the calculation are valid.
 
-The method needs a usable starting value for every instrument with a nonzero allocation and dated values for portfolio valuation. If an instrument has no observation on the start date, or constituent series have different/missing dates such that a portfolio value cannot be calculated, do not choose a start-value substitution or missing-date policy on the user’s behalf. Describe the affected instruments and dates, then ask which date/alignment treatment to use before calculating results. Apply the same comparison interval and compatible date treatment to both portfolios; identify any dates excluded from the direct comparison.
+The requested start date is the actual lump-sum investment date. Every constituent of both portfolios must have an observation on that date; if any is missing, fail explicitly and report the affected instruments. Do not advance to a later start date or substitute a value. After the start date, include only dates on which every constituent of each portfolio has an observation, then align both portfolio series on their common dates. Do not forward-fill or interpolate. Report any dates excluded from the direct comparison and the actual last common date used.
 
 Do not infer that a requested period’s endpoints are actual observation dates. Report the actual dates used. Keep raw observations distinct from derived units, portfolio values, and returns; calculate derived values deterministically and do not persist them as source data.
 

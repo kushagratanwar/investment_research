@@ -29,6 +29,10 @@ The ingestion pipeline accepts normalized `(instrument_key, observation_date, va
 
 Source acquisition and provider-specific parsing are separate from this loader. The loader does not fetch data from an external provider.
 
+The AMFI acquisition module parses the official scheme catalogue, supports candidate resolution and confirmation, splits history ranges into inclusive chunks of at most 90 days, parses AMFI dates and values, filters to the confirmed Scheme Code, and checks available ISIN identity. Its injectable client uses Python's standard-library HTTP transport by default. The [AMFI NAV Import skill](../.codex/skills/amfi-nav-import/SKILL.md) documents the tested operational route using `curl` over HTTPS and the verified AMFI mutual-fund selector; it validates the exact scheme and each requested chunk before sending normalized rows to the existing ingestion API. Both paths delegate observation writes and conflict handling to the generic loader; the AMFI adapter may register an instrument through the existing registration API.
+
+The acquisition/parser code is in `research_engine/acquisition/amfi.py`; `research_engine/ingestion/amfi.py` provides an adapter that registers the stable `amfi:scheme:<Scheme Code>` key when needed and delegates normalized rows to `ingest_observations`. The generic loader itself remains provider-agnostic. Automated AMFI tests use mocked/local report text and do not contact AMFI.
+
 ### Retrieval and analysis
 
 Repository retrieval selects stored values by instrument and optional date bounds, in chronological order. It does not fill missing dates or transform values. Python functions calculate simple value-to-value returns, period returns, and ACT/365 CAGR from retrieved observations.
@@ -39,8 +43,8 @@ Repository retrieval selects stored values by instrument and optional date bound
 
 ### Portfolio comparison
 
-`compare_portfolios` calculates each input portfolio with `portfolio_value_series`, restricts both results to the requested inclusive interval, and aligns them on common dates. It returns both aligned normalized series, actual comparison endpoints, total return and ACT/365 CAGR for each portfolio, and each difference in percentage points. CAGR uses calendar days between the actual aligned endpoints. It does not forward-fill or interpolate, and it does not persist portfolios or derived values.
+`compare_portfolios` calculates each input portfolio with `portfolio_value_series`, restricts both results to the requested inclusive interval, and aligns them on common dates. Each constituent of both portfolios must have a value on the requested start date; otherwise comparison fails rather than advancing the start. It returns both aligned normalized series, actual comparison endpoints, total return and ACT/365 CAGR for each portfolio, and each difference in percentage points. CAGR uses calendar days between the actual aligned endpoints. It does not forward-fill or interpolate, and it does not persist portfolios or derived values.
 
 ## Current boundary
 
-The project can calculate and compare historical value series for two portfolios. No portfolio persistence or portfolio-management functionality is provided.
+The reusable [Portfolio Historical Comparison skill](../.codex/skills/portfolio-historical-comparison/SKILL.md) describes the same implemented methodology and outputs. The local SQLite file is ignored by Git; its currently loaded instruments and date coverage vary by environment and must be checked before an analysis. No portfolio persistence or portfolio-management functionality is provided.
