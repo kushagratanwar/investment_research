@@ -7,7 +7,7 @@ normalized input rows
         ↓
 ingestion validation, provenance, and conflict-safe loading
         ↓
-SQLite: instruments, observations, ingestion_runs
+SQLite: instruments (key and optional name), observations, ingestion_runs
         ↓
 historical observation retrieval
         ├── deterministic single-series calculations

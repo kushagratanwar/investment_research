@@ -2,7 +2,8 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS instruments (
     instrument_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    instrument_key TEXT NOT NULL UNIQUE
+    instrument_key TEXT NOT NULL UNIQUE,
+    instrument_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ingestion_runs (

@@ -3,7 +3,12 @@
 from datetime import date, datetime
 
 from research_engine.acquisition.amfi import AMFIClient, ConfirmedScheme
-from research_engine.db.repositories import get_instrument_id, register_instrument
+from research_engine.db.repositories import (
+    get_instrument_id,
+    get_instrument_name,
+    register_instrument,
+    set_instrument_name,
+)
 from research_engine.ingestion.pipeline import ingest_observations
 
 
@@ -29,8 +34,11 @@ def populate_amfi_scheme(
         raise ValueError("AMFI returned no NAV observations for the confirmed scheme and range")
 
     instrument_key = scheme.instrument_key
+    instrument_name = _instrument_name(scheme.scheme)
     if get_instrument_id(conn, instrument_key) is None:
-        register_instrument(conn, instrument_key)
+        register_instrument(conn, instrument_key, instrument_name)
+    elif get_instrument_name(conn, instrument_key) is None:
+        set_instrument_name(conn, instrument_key, instrument_name)
 
     normalized = [
         (
@@ -61,3 +69,11 @@ def _date_text(value):
     if isinstance(value, date):
         return value.isoformat()
     return str(value)
+
+
+def _instrument_name(scheme):
+    name = scheme.nav_name.strip()
+    variant = " - ".join(part.strip() for part in (scheme.plan, scheme.option) if part.strip())
+    if variant and not name.casefold().endswith(variant.casefold()):
+        name = f"{name} - {variant}"
+    return name

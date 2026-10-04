@@ -14,8 +14,26 @@ def connect(db_path=DEFAULT_DB):
 def initialize_database(conn):
     schema_path = Path(__file__).with_name("schema.sql")
     _migrate_legacy_schema(conn)
+    _migrate_instrument_name(conn)
     conn.executescript(schema_path.read_text())
     conn.commit()
+
+
+def _migrate_instrument_name(conn):
+    tables = {
+        row[0]
+        for row in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table'"
+        )
+    }
+    if "instruments" not in tables:
+        return
+    columns = {
+        row[1] for row in conn.execute("PRAGMA table_info(instruments)")
+    }
+    if "instrument_key" in columns and "instrument_name" not in columns:
+        conn.execute("ALTER TABLE instruments ADD COLUMN instrument_name TEXT")
+        conn.commit()
 
 
 def _migrate_legacy_schema(conn):

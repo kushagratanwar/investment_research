@@ -4,7 +4,7 @@ This project is a generic foundation for working with historical daily NAV/value
 
 ## Current components
 
-- **SQLite** is the source of truth for accepted historical values. The schema contains `instruments`, `observations`, and `ingestion_runs`.
+- **SQLite** is the source of truth for accepted historical values. The schema contains `instruments`, `observations`, and `ingestion_runs`. Instruments have a stable key and an optional human-readable name; AMFI imports record the scheme name with its plan and option.
 - **Ingestion** accepts normalized `(instrument_key, observation_date, value)` rows for one registered instrument. It records provenance and counts; new observations are inserted, repeats are counted, conflicts are recorded without overwriting, and invalid rows are not inserted.
 - **AMFI acquisition** parses AMFI scheme catalog/history reports, resolves scheme candidates, chunks history requests to AMFI's 90-day limit, and delegates database loading to the generic ingestion API. For mutual-fund requests without a specified variant, resolve **Direct Plan — Growth** by default. The reusable [AMFI NAV Import skill](.codex/skills/amfi-nav-import/SKILL.md) describes the tested operational path: display the AMFI Scheme Code and exact identity/date range, wait for the user's explicit confirmation even for a unique match, then fetch with verified official AMFI HTTPS `curl` requests, validate and normalize each response, ingest, and verify stored values.
 - **Retrieval** returns stored observations in date order, optionally bounded by dates. It does not fill gaps or transform values.

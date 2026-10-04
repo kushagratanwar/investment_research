@@ -36,7 +36,7 @@ def test_database_initializes_only_foundation_tables():
     }
     assert tables == {"instruments", "observations", "ingestion_runs", "sqlite_sequence"}
     assert {row[1] for row in conn.execute("PRAGMA table_info(instruments)")} == {
-        "instrument_id", "instrument_key"
+        "instrument_id", "instrument_key", "instrument_name"
     }
     assert {row[1] for row in conn.execute("PRAGMA table_info(observations)")} == {
         "instrument_id", "observation_date", "value", "ingestion_run_id"

@@ -3,7 +3,7 @@
 ## Current decisions
 
 - **Minimal persistence:** SQLite contains only `instruments`, `observations`, and `ingestion_runs`.
-- **Generic identity:** instruments use an internal ID and stable generic key; no static fund metadata is required by current analyses.
+- **Instrument labels:** instruments use an internal ID and stable generic key, with an optional human-readable `instrument_name`. AMFI fund labels include the scheme name, plan, and option so stored instruments can be identified. Other static fund metadata remains out of scope.
 - **Normalized ingestion:** the database loader accepts `(instrument_key, observation_date, value)` rows for one registered instrument. Acquisition and provider-specific parsing are separate.
 - **Conflict-safe history:** instrument/date is unique. Identical repeats are duplicates; a differing value is recorded as a conflict and never silently overwrites the accepted observation.
 - **Input validation:** malformed rows, invalid ISO dates, and nonnumeric or non-finite values are not inserted and are counted in the run.

@@ -8,8 +8,9 @@ SQLite currently contains exactly three application tables.
 |---|---|
 | `instrument_id` | Internal primary key used by observations and in-memory portfolio specifications. |
 | `instrument_key` | Stable, generic, unique identity used to associate normalized input rows with a registered instrument. |
+| `instrument_name` | Optional human-readable label. AMFI imports include the scheme name, plan, and option so the instrument is identifiable in database queries. It is descriptive, not an identity key. |
 
-No descriptive investment metadata is required by the current implementation.
+No additional descriptive investment metadata is stored.
 
 ## `observations`
 
@@ -59,7 +60,7 @@ instrument_key, observation_date, value
 
 One ingestion call accepts rows for one registered instrument. The loader does not fetch or parse provider data and does not create unknown instruments; an unknown key raises an error before a run is created.
 
-The AMFI adapter is separate from the loader. It resolves scheme candidates from AMFI's NAV report and uses `amfi:scheme:<Scheme Code>` as the stable instrument key when populating a selected scheme. The operational AMFI NAV Import skill requires the user to confirm the displayed Scheme Code, exact scheme identity, and requested date range before each import—even when the catalogue returns one match. Historical AMFI rows are normalized and submitted through the loader, which records provenance and applies the existing duplicate, conflict, and invalid-row behavior.
+The AMFI adapter is separate from the loader. It resolves scheme candidates from AMFI's NAV report and uses `amfi:scheme:<Scheme Code>` as the stable instrument key when populating a selected scheme. It also records a human-readable instrument name containing the scheme name, plan, and option. The operational AMFI NAV Import skill requires the user to confirm the displayed Scheme Code, exact scheme identity, and requested date range before each import—even when the catalogue returns one match. Historical AMFI rows are normalized and submitted through the loader, which records provenance and applies the existing duplicate, conflict, and invalid-row behavior.
 
 The AMFI NAV Import skill uses the official AMFI HTTPS history endpoint with `curl`, after confirming the exact scheme and the current AMFI mutual-fund selector. It requests inclusive chunks no longer than 90 calendar days and records each chunk's source URL through the existing ingestion pipeline. The `instrument_key` is the stable external-facing identity; it is looked up to an internal `instrument_id` for observations and in-memory portfolios. The local SQLite database is Git-ignored, so its current data coverage is not guaranteed in a fresh checkout.
 
