@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from research_engine.analysis.performance import cagr
 from research_engine.portfolio.models import PortfolioSpec
 from research_engine.portfolio.series import portfolio_value_series
 
@@ -14,6 +15,9 @@ class PortfolioComparisonResult:
     total_return_a: float
     total_return_b: float
     return_difference_percentage_points: float
+    cagr_a: float
+    cagr_b: float
+    cagr_difference_percentage_points: float
 
 
 def compare_portfolios(
@@ -82,6 +86,14 @@ def compare_portfolios(
 
     total_return_a = aligned_a[actual_end_date] - 1.0
     total_return_b = aligned_b[actual_end_date] - 1.0
+    elapsed_days = (actual_end_date - actual_start_date).days
+    years = elapsed_days / 365
+    cagr_a = cagr(
+        aligned_a[actual_start_date], aligned_a[actual_end_date], years
+    )
+    cagr_b = cagr(
+        aligned_b[actual_start_date], aligned_b[actual_end_date], years
+    )
 
     return PortfolioComparisonResult(
         portfolio_a_series=aligned_a,
@@ -94,4 +106,7 @@ def compare_portfolios(
             total_return_a - total_return_b
         )
         * 100.0,
+        cagr_a=cagr_a,
+        cagr_b=cagr_b,
+        cagr_difference_percentage_points=(cagr_a - cagr_b) * 100.0,
     )

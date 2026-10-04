@@ -235,3 +235,80 @@ def test_arbitrary_instrument_counts_work_for_both_portfolios():
 
     assert result.portfolio_a_series[date(2026, 1, 2)] == pytest.approx(1.23)
     assert result.portfolio_b_series[date(2026, 1, 2)] == pytest.approx(0.875)
+
+
+def test_cagr_known_multiyear_growth_and_existing_total_returns():
+    conn = database()
+    instrument_a = add_instrument(
+        conn,
+        "synthetic_cagr_a",
+        [("2023-01-01", 100), ("2024-12-31", 121)],
+    )
+    instrument_b = add_instrument(
+        conn,
+        "synthetic_cagr_b",
+        [("2023-01-01", 100), ("2024-12-31", 110)],
+    )
+
+    result = compare_portfolios(
+        conn,
+        PortfolioSpec({instrument_a: 1.0}),
+        PortfolioSpec({instrument_b: 1.0}),
+        date(2023, 1, 1),
+        date(2024, 12, 31),
+    )
+
+    assert (result.actual_end_date - result.actual_start_date).days == 730
+    assert result.total_return_a == pytest.approx(0.21)
+    assert result.total_return_b == pytest.approx(0.10)
+    assert result.cagr_a == pytest.approx(0.10)
+    assert result.cagr_b == pytest.approx(1.10 ** (365 / 730) - 1)
+    assert result.cagr_difference_percentage_points == pytest.approx(
+        (result.cagr_a - result.cagr_b) * 100
+    )
+
+
+def test_cagr_uses_actual_aligned_dates_and_act_365_for_partial_year():
+    conn = database()
+    instrument_a = add_instrument(
+        conn,
+        "synthetic_partial_year_a",
+        [("2024-01-01", 100), ("2024-04-10", 110)],
+    )
+    instrument_b = add_instrument(
+        conn,
+        "synthetic_partial_year_b",
+        [("2024-01-01", 100), ("2024-04-10", 105), ("2024-04-15", 106)],
+    )
+
+    result = compare_portfolios(
+        conn,
+        PortfolioSpec({instrument_a: 1.0}),
+        PortfolioSpec({instrument_b: 1.0}),
+        date(2024, 1, 1),
+        date(2024, 4, 15),
+    )
+
+    assert result.actual_start_date == date(2024, 1, 1)
+    assert result.actual_end_date == date(2024, 4, 10)
+    elapsed_days = (result.actual_end_date - result.actual_start_date).days
+    assert elapsed_days == 100
+    assert list(result.portfolio_a_series) == [
+        result.actual_start_date,
+        result.actual_end_date,
+    ]
+    expected_a = (
+        result.portfolio_a_series[result.actual_end_date]
+        / result.portfolio_a_series[result.actual_start_date]
+    ) ** (365 / elapsed_days) - 1
+    expected_b = (
+        result.portfolio_b_series[result.actual_end_date]
+        / result.portfolio_b_series[result.actual_start_date]
+    ) ** (365 / elapsed_days) - 1
+    assert result.cagr_a == pytest.approx(expected_a)
+    assert result.cagr_b == pytest.approx(expected_b)
+    assert result.total_return_a == pytest.approx(0.10)
+    assert result.total_return_b == pytest.approx(0.05)
+    assert result.cagr_difference_percentage_points == pytest.approx(
+        (expected_a - expected_b) * 100
+    )

@@ -39,7 +39,7 @@ Repository retrieval selects stored values by instrument and optional date bound
 
 ### Portfolio comparison
 
-`compare_portfolios` calculates each input portfolio with `portfolio_value_series`, restricts both results to the requested inclusive interval, and aligns them on common dates. It returns both aligned normalized series, actual comparison endpoints, each portfolio's total return, and the return difference in percentage points. It does not forward-fill or interpolate, and it does not persist portfolios or derived values.
+`compare_portfolios` calculates each input portfolio with `portfolio_value_series`, restricts both results to the requested inclusive interval, and aligns them on common dates. It returns both aligned normalized series, actual comparison endpoints, total return and ACT/365 CAGR for each portfolio, and each difference in percentage points. CAGR uses calendar days between the actual aligned endpoints. It does not forward-fill or interpolate, and it does not persist portfolios or derived values.
 
 ## Current boundary
 
