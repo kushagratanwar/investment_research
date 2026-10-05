@@ -2,6 +2,33 @@
 
 This project is a generic foundation for working with historical daily NAV/value data. The current implementation provides a small SQLite data store, conflict-safe ingestion of normalized observations, historical retrieval, basic single-series return calculations, an in-memory portfolio specification, and deterministic portfolio value and comparison calculations.
 
+## Use on another machine
+
+Clone the repository and work from its root directory. The tracked `investment_research.db` file is the shared database snapshot; cloning or pulling the commit containing it downloads the database along with the code. The application opens this root-level file by default, using a path relative to the current working directory.
+
+```sh
+git clone <repository-url>
+cd investment_research_mvp
+```
+
+The project requires Python 3.11 or later. Create a separate virtual environment on each machine and install the project with its test dependency:
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[test]'
+```
+
+On Windows PowerShell, use `py -3 -m venv .venv`, then `.venv\Scripts\Activate.ps1`, followed by the same `python -m pip install -e '.[test]'` command. Do not copy or commit `.venv`; recreate it for each machine and operating system.
+
+To receive a database snapshot refreshed by another machine, pull its commit before using the database:
+
+```sh
+git pull --ff-only origin main
+```
+
+After importing new data, close any process using SQLite, then stage and commit the updated database with the code changes (or in its own commit) and push. The database is a binary file, so coordinate updates through one writer at a time; Git cannot merge concurrent SQLite changes row by row. The original AMFI response artifacts are not bundled with the database, so local artifact paths in ingestion provenance are not available on another machine.
+
 ## Current components
 
 - **SQLite** is the source of truth for accepted historical values. The schema contains `instruments`, `observations`, and `ingestion_runs`. Instruments have a stable key and an optional human-readable name; AMFI imports record the scheme name with its plan and option.
